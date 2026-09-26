@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Japanese Flashcards • Hiragana • Katakana • JLPT N5 Kanji</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+font-family:Poppins,sans-serif;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+min-height:100vh;
+color:white;
+
+}
+
+header{
+
+text-align:center;
+padding:40px 20px;
+
+}
+
+header h1{
+
+font-size:3rem;
+
+}
+
+header p{
+
+margin-top:10px;
+opacity:.9;
+
+}
+
+.tabs{
+
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:12px;
+padding:10px;
+
+}
+
+button{
+
+border:none;
+padding:12px 22px;
+border-radius:30px;
+cursor:pointer;
+font-weight:600;
+transition:.3s;
+
+}
+
+button:hover{
+
+transform:translateY(-3px);
+
+}
+
+.active{
+
+background:#ff5f6d;
+color:white;
+
+}
+
+.normal{
+
+background:white;
+color:#1e3c72;
+
+}
+
+.controls{
+
+display:flex;
+justify-content:center;
+margin:20px;
+
+}
+
+.cards{
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:20px;
+max-width:1200px;
+margin:auto;
+padding:20px;
+
+}
+
+.card{
+
+height:180px;
+perspective:1000px;
+cursor:pointer;
+
+}
+
+.inner{
+
+width:100%;
+height:100%;
+position:relative;
+transition:transform .6s;
+transform-style:preserve-3d;
+
+}
+
+.card.flip .inner{
+
+transform:rotateY(180deg);
+
+}
+
+.face{
+
+position:absolute;
+width:100%;
+height:100%;
+backface-visibility:hidden;
+border-radius:20px;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+padding:15px;
+box-shadow:0 10px 25px rgba(0,0,0,.3);
+
+}
+
+.front{
+
+background:white;
+color:#1e3c72;
+font-family:"Noto Sans JP",sans-serif;
+font-size:3rem;
+font-weight:bold;
+
+}
+
+.back{
+
+background:#ff5f6d;
+transform:rotateY(180deg);
+text-align:center;
+
+}
+
+.back h3{
+
+font-size:1.3rem;
+
+}
+
+.back p{
+
+font-size:.82rem;
+margin-top:5px;
+
+}
+
+footer{
+
+text-align:center;
+padding:30px;
+opacity:.8;
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>🇯🇵 Japanese Flashcards</h1>
+
+<p>Learn Hiragana, Katakana, and JLPT N5 Kanji through interactive flashcards.</p>
+
+</header>
+
+<div class="tabs">
+
+<button class="active" onclick="changeSet('hiragana',this)">Hiragana</button>
+
+<button class="normal" onclick="changeSet('katakana',this)">Katakana</button>
+
+<button class="normal" onclick="changeSet('kanji',this)">JLPT N5 Kanji</button>
+
+</div>
+
+<div class="controls">
+
+<button class="normal" onclick="shuffleCards()">🔀 Shuffle Cards</button>
+
+</div>
+
+<div id="cards" class="cards"></div>
+
+<footer>
+
+Made with ❤️ for Japanese Learners • がんばって！
+
+</footer>
+
+<script>
+
+const data={
+
+hiragana:[
+
+["あ","a"],["い","i"],["う","u"],["え","e"],["お","o"],
+["か","ka"],["き","ki"],["く","ku"],["け","ke"],["こ","ko"],
+["さ","sa"],["し","shi"],["す","su"],["せ","se"],["そ","so"],
+["た","ta"],["ち","chi"],["つ","tsu"],["て","te"],["と","to"],
+["な","na"],["に","ni"],["ぬ","nu"],["ね","ne"],["の","no"],
+["は","ha"],["ひ","hi"],["ふ","fu"],["へ","he"],["ほ","ho"],
+["ま","ma"],["み","mi"],["む","mu"],["め","me"],["も","mo"],
+["や","ya"],["ゆ","yu"],["よ","yo"],
+["ら","ra"],["り","ri"],["る","ru"],["れ","re"],["ろ","ro"],
+["わ","wa"],["を","wo"],["ん","n"]
+
+],
+
+katakana:[
+
+["ア","a"],["イ","i"],["ウ","u"],["エ","e"],["オ","o"],
+["カ","ka"],["キ","ki"],["ク","ku"],["ケ","ke"],["コ","ko"],
+["サ","sa"],["シ","shi"],["ス","su"],["セ","se"],["ソ","so"],
+["タ","ta"],["チ","chi"],["ツ","tsu"],["テ","te"],["ト","to"],
+["ナ","na"],["ニ","ni"],["ヌ","nu"],["ネ","ne"],["ノ","no"],
+["ハ","ha"],["ヒ","hi"],["フ","fu"],["ヘ","he"],["ホ","ho"],
+["マ","ma"],["ミ","mi"],["ム","mu"],["メ","me"],["モ","mo"],
+["ヤ","ya"],["ユ","yu"],["ヨ","yo"],
+["ラ","ra"],["リ","ri"],["ル","ru"],["レ","re"],["ロ","ro"],
+["ワ","wa"],["ヲ","wo"],["ン","n"]
+
+],
+
+kanji:[
+
+["一","One","イチ","ひと"],
+["二","Two","ニ","ふた"],
+["三","Three","サン","みっ"],
+["四","Four","シ","よん"],
+["五","Five","ゴ","いつ"],
+["六","Six","ロク","むっ"],
+["七","Seven","シチ","なな"],
+["八","Eight","ハチ","やっ"],
+["九","Nine","キュウ","ここの"],
+["十","Ten","ジュウ","とお"],
+
+["百","Hundred","ヒャク",""],
+["千","Thousand","セン",""],
+["万","Ten Thousand","マン",""],
+
+["日","Day / Sun","ニチ","ひ"],
+["月","Month / Moon","ゲツ","つき"],
+["火","Fire","カ","ひ"],
+["水","Water","スイ","みず"],
+["木","Tree","モク","き"],
+["金","Gold / Money","キン","かね"],
+["土","Earth","ド","つち"],
+
+["年","Year","ネン","とし"],
+["時","Time","ジ","とき"],
+["分","Minute / Part","フン","わ"],
+["今","Now","コン","いま"],
+["毎","Every","マイ",""],
+["週","Week","シュウ",""],
+["曜","Weekday","ヨウ",""],
+
+["上","Up","ジョウ","うえ"],
+["下","Down","カ","した"],
+["中","Middle","チュウ","なか"],
+["大","Big","ダイ","おお"],
+["小","Small","ショウ","ちい"],
+["右","Right","ウ","みぎ"],
+["左","Left","サ","ひだり"],
+
+["人","Person","ジン","ひと"],
+["子","Child","シ","こ"],
+["女","Woman","ジョ","おんな"],
+["男","Man","ダン","おとこ"],
+["父","Father","フ","ちち"],
+["母","Mother","ボ","はは"],
+["友","Friend","ユウ","とも"],
+
+["先","Previous","セン","さき"],
+["生","Life / Birth","セイ","い"],
+["学","Study","ガク","まな"],
+["校","School","コウ",""],
+["会","Meet","カイ","あ"],
+["社","Company","シャ",""],
+["名","Name","メイ","な"],
+
+["山","Mountain","サン","やま"],
+["川","River","セン","かわ"],
+["田","Rice Field","デン","た"],
+["口","Mouth","コウ","くち"],
+["目","Eye","モク","め"],
+["耳","Ear","ジ","みみ"],
+["手","Hand","シュ","て"],
+["足","Foot","ソク","あし"],
+
+["力","Power","リョク","ちから"],
+["気","Spirit","キ",""],
+["体","Body","タイ","からだ"],
+
+["雨","Rain","ウ","あめ"],
+["天","Heaven","テン","あま"],
+["空","Sky","クウ","そら"],
+["電","Electricity","デン",""],
+["車","Car","シャ","くるま"],
+["駅","Station","エキ",""],
+["道","Road","ドウ","みち"],
+
+["家","House","カ","いえ"],
+["店","Shop","テン","みせ"],
+["室","Room","シツ",""],
+["国","Country","コク","くに"],
+
+["外","Outside","ガイ","そと"],
+["北","North","ホク","きた"],
+["南","South","ナン","みなみ"],
+["東","East","トウ","ひがし"],
+["西","West","セイ","にし"],
+
+["食","Eat / Food","ショク","た"],
+["飲","Drink","イン","の"],
+["見","See","ケン","み"],
+["聞","Hear","ブン","き"],
+["話","Talk","ワ","はな"],
+["読","Read","ドク","よ"],
+["書","Write","ショ","か"],
+
+["行","Go","コウ","い"],
+["来","Come","ライ","く"],
+["帰","Return","キ","かえ"],
+["入","Enter","ニュウ","はい"],
+["出","Exit","シュツ","で"],
+["休","Rest","キュウ","やす"],
+
+["買","Buy","バイ","か"],
+["高","High / Expensive","コウ","たか"],
+["安","Cheap / Safe","アン","やす"],
+["新","New","シン","あたら"],
+["古","Old","コ","ふる"],
+["長","Long","チョウ","なが"],
+["多","Many","タ","おお"],
+["少","Few","ショウ","すく"],
+
+["白","White","ハク","しろ"],
+["黒","Black","コク","くろ"],
+["赤","Red","セキ","あか"],
+["青","Blue","セイ","あお"],
+
+["円","Yen / Circle","エン","まる"],
+["本","Book / Origin","ホン","もと"],
+["語","Language","ゴ","かた"],
+["文","Sentence","ブン","ふみ"]
+
+]
+
+};
+
+let current="hiragana";
+
+function render(){
+
+const container=document.getElementById("cards");
+container.innerHTML="";
+
+data[current].forEach(item=>{
+
+const card=document.createElement("div");
+card.className="card";
+
+let back="";
+
+if(current==="kanji"){
+
+back=`
+<h3>${item[1]}</h3>
+<p><b>On:</b> ${item[2]||"-"}</p>
+<p><b>Kun:</b> ${item[3]||"-"}</p>
+`;
+
+}else{
+
+back=`<h3>${item[1]}</h3>`;
+
+}
+
+card.innerHTML=`
+
+<div class="inner">
+
+<div class="face front">${item[0]}</div>
+
+<div class="face back">${back}</div>
+
+</div>
+
+`;
+
+card.onclick=()=>card.classList.toggle("flip");
+
+container.appendChild(card);
+
+});
+
+}
+
+function changeSet(set,btn){
+
+current=set;
+
+render();
+
+document.querySelectorAll(".tabs button").forEach(b=>{
+
+b.classList.remove("active");
+b.classList.add("normal");
+
+});
+
+btn.classList.remove("normal");
+btn.classList.add("active");
+
+}
+
+function shuffleCards(){
+
+data[current].sort(()=>Math.random()-0.5);
+
+render();
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
